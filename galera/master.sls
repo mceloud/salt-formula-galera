@@ -61,6 +61,8 @@ galera_bootstrap_script:
   - source: salt://galera/files/bootstrap.sh
   - template: jinja
 
+{%- if not grains.get('noservices', False) %}
+
 {%- if salt['cmd.run']('test -e /var/lib/mysql/.galera_bootstrap; echo $?') != '0'  %}
 
 galera_bootstrap_temp_config:
@@ -125,12 +127,15 @@ galera_bootstrap_finish_flag:
 
 {%- endif %}
 
+{%- endif %}
+
 galera_config:
   file.managed:
   - name: {{ master.config }}
   - source: salt://galera/files/my.cnf
   - mode: 644
   - template: jinja
+{%- if not grains.get('noservices', False) %}
   - require_in: 
     - service: galera_service
 
@@ -139,5 +144,18 @@ galera_service:
   - name: {{ master.service }}
   - enable: true
   - reload: true
+
+{%- endif %}
+
+{%- if not grains.get('virtual_subtype', None) == "Docker" %}
+
+galera_entrypoint:
+  file.managed:
+  - name: /entrypoint.sh
+  - template: jinja
+  - source: salt://galera/files/entrypoint.sh
+  - mode: 755
+
+{%- endif %}
 
 {%- endif %}

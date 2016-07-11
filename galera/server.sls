@@ -2,6 +2,8 @@
 
 {%- set server = pillar.mysql.server %}
 
+{%- if not grains.get('noservices', False) %}
+
 {%- for database_name, database in server.get('database', {}).iteritems() %}
 
 mysql_database_{{ database_name }}:
@@ -66,5 +68,7 @@ mysql_user_{{ user.name }}_{{ user.host }}:
   {%- endif %}
 
 {%- endfor %}
+
+{%- endif %}
 
 {%- endif %}
